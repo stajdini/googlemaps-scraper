@@ -156,7 +156,9 @@ class GoogleMapsScraper:
     # need to use different url wrt reviews one to have all info
     def get_account(self, url):
 
-        self.driver.get(url)
+        time.sleep(2)
+        self.driver.find_elements_by_xpath('//*[@id="QA0Szd"]/div/div/div[1]/div[2]/div/div[1]/div/div/div[2]/div[1]/div[1]/div[2]/div/div[1]/div[2]').click()
+        
         self.__click_on_cookie_agreement()
 
         # ajax call also for this section

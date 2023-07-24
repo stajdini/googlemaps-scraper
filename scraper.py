@@ -5,7 +5,7 @@ import argparse
 import csv
 from termcolor import colored
 import time
-
+import pandas as pd
 
 ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user']
@@ -41,34 +41,39 @@ if __name__ == '__main__':
     writer = csv_writer(args.source, args.sort_by)
 
     with GoogleMapsScraper(debug=args.debug) as scraper:
-        with open(args.i, 'r') as urls_file:
-            for url in urls_file:
-                if args.place:
-                    print(scraper.get_account(url))
-                else:
-                    error = scraper.sort_by(url, ind[args.sort_by])
+        
+        urls_file = pd.read_excel(args.i, index_col = None, header = None) #added
+        print('Found {} urls'.format(urls_file.shape[0]))
+        for i, url in enumerate(urls_file.iloc[:, 0].values): #added.values
+            print(i, url)
+            business = url.split('place/')[1].split('/')[0].replace('+', ' ')
 
-                    if error == 0:
+            if args.place:
+                print(scraper.get_account(url))
+            else:
+                error = scraper.sort_by(url, ind[args.sort_by])
 
-                        n = 0
+                if error == 0:
 
-                        #if ind[args.sort_by] == 0:
-                        #    scraper.more_reviews()
+                    n = 0
 
-                        while n < args.N:
+                    #if ind[args.sort_by] == 0:
+                    #    scraper.more_reviews()
 
-                            # logging to std out
-                            print(colored('[Review ' + str(n) + ']', 'cyan'))
+                    while n < args.N:
 
-                            reviews = scraper.get_reviews(n)
-                            if len(reviews) == 0:
-                                break
+                        # logging to std out
+                        print(colored('[Review ' + str(n) + ']', 'cyan'))
 
-                            for r in reviews:
-                                row_data = list(r.values())
-                                if args.source:
-                                    row_data.append(url[:-1])
+                        reviews = scraper.get_reviews(n)
+                        if len(reviews) == 0:
+                            break
 
-                                writer.writerow(row_data)
+                        for r in reviews:
+                            row_data = list(r.values())
+                            if args.source:
+                                row_data.append(url[:-1])
 
-                            n += len(reviews)
+                            writer.writerow(row_data)
+
+                        n += len(reviews)
